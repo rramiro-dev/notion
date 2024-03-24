@@ -9,3 +9,4 @@ dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 
 API_KEY = os.getenv("API_KEY")
+PAGE_ID = os.getenv("PAGE_ID")
