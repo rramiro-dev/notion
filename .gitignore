@@ -1,11 +1,16 @@
-# environment variables
+# Environment variables
 .env
 
-# folders and files that has been created automatically on the operative system
-__pycache__
+# MacOS
 .DS_STORE
 
-# private databases information
+# Python
+__pycache__/
+
+# Google creds
+credentials.json
+token.json
+
+# Private databases information
 db_info.json
 db_rows.json
-simplified_rows.json
