@@ -12,6 +12,7 @@ from googleapiclient.errors import HttpError
 
 import json
 import time
+from dotenv import find_dotenv
 
 import environment_variables as env
 import notion as notion
@@ -21,20 +22,46 @@ start_time = time.time()
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-# The ID and range of a sample spreadsheet.
+# The ID and range of the google spreadsheet
 GOOGLE_SPREADSHEET_ID = env.GOOGLE_SPREADSHEET_ID
-RANGE_NAME = "Raw data!A1"
+RANGE_NAME = "Raw data categorias!A1"
+
+def add_headers_to_array(path, _list: list, db_name: str):
+	'''
+		Fill in the array given as "_list" with the values located in the given "path"
+	'''
+
+	with open(path, 'r') as file:
+		data = json.load(file)
+		for header in data.get('headers', []):
+			if db_name in header:
+				_list.extend(header[db_name])
+	return _list
 
 def extract_specific_notion_data():
 	data = notion.get_notion_data()
 	headers = list()
 	values = list()
 	
-	with open('headers.txt', 'r') as file:
-		lines = file.readlines()
-		for line in lines:
-			header_item = line.replace('\n', '')
-			headers.append(header_item)
+	# Appends the headers from the json file to an array if the file exists
+	headers_file_name = 'headers.json'
+	if os.path.exists(headers_file_name):
+		headers_json_path = find_dotenv(filename=headers_file_name)
+		add_headers_to_array(headers_json_path, headers, 'categorias')
+	else:
+		# Creates the json file with the initial structure
+		with open(headers_file_name, 'w') as file:
+			initial_content = {
+				'headers': [
+					{
+						'categorias': ['ID', 'NAME', 'MES ACTUAL', 'MES ANTERIOR', 'PRESUPUESTO', 'LAST_UPDATED_TIME']
+					},
+					{
+						'gastos': [] # ['ID', 'NAME', 'MES ACTUAL', 'MES ANTERIOR', 'PRESUPUESTO', 'LAST_UPDATED_TIME']
+					}
+				]
+			}
+			json.dump(initial_content, file)
 
 	for item in data['results']:
 		id = str(notion.safe_get(item, 'properties.ID.unique_id.number'))

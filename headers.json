@@ -1,0 +1,17 @@
+{
+    "headers": [
+        {
+            "categorias": [
+                "ID",
+                "NAME",
+                "MES ACTUAL",
+                "MES ANTERIOR",
+                "PRESUPUESTO",
+                "LAST_UPDATED_TIME"
+            ]
+        },
+        {
+            "gastos": []
+        }
+    ]
+}
