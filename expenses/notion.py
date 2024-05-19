@@ -14,7 +14,7 @@ def write_dict_to_file_as_json(content, file_name, extension:str='.json'):
     with open(file_name, 'w') as f:
         f.write(content_as_json_str)
 
-def safe_get(data, dot_chained_keys):
+def safe_get(data, dot_chained_keys, default=None):
     '''
         {'a': {'b': [{'c': 1}]}}
         safe_get(data, 'a.b.0.c') -> 1
@@ -24,15 +24,14 @@ def safe_get(data, dot_chained_keys):
     keys = dot_chained_keys.split('.')
     for key in keys:
         try:
-            if isinstance(data, list):
-                data = data[int(key)]
-            else:
-                data = data[key]
-        except (KeyError, TypeError, IndexError):
-            return None
+            if key.isdigit():
+                key = int(key)
+            data = data[key]
+        except (KeyError, IndexError, TypeError):
+            return default
     return data
 
-def get_notion_data():
+def get_notion_data(_database_id):
     '''
         1) Authenticates the access to my Notion database through an API Integration
         2) Gets the data from the Notion database
@@ -41,12 +40,7 @@ def get_notion_data():
     # Authentication
     client = Client(auth=env.NOTION_SECRET_API_KEY)
 
-    # GET database information (no row's data)
-    # db_info = client.databases.retrieve(database_id=env.NOTION_DATABASE_ID_CATEGORIAS)
-    # write_dict_to_file_as_json(db_info, 'db_info.json')
-
     # GET database row's data
-    db_rows = client.databases.query(database_id=env.NOTION_DATABASE_ID_CATEGORIAS)
-    # write_dict_to_file_as_json(db_rows, 'db_rows.json')
+    db_data = client.databases.query(database_id=_database_id)
 
-    return db_rows
+    return db_data
