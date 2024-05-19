@@ -46,7 +46,7 @@ def add_headers_to_array(db_name: str):
 						'categorias': ['ID', 'NAME', 'MES ACTUAL', 'MES ANTERIOR', 'PRESUPUESTO', 'LAST_UPDATED_TIME']
 					},
 					{
-						'gastos': ['ID', 'NAME', 'VALOR', 'FECHA', 'RECURRENTE', 'MEDIO DE PAGO', 'EMPRESA', 'LAST_UPDATED_TIME']
+						'gastos': ['ID', 'NAME', 'VALOR', 'FECHA', 'RECURRENTE', 'MEDIO DE PAGO', 'EMPRESA', 'CATEGORIA', 'LAST_UPDATED_TIME']
 					}
 				]
 			}
@@ -59,7 +59,7 @@ def add_headers_to_array(db_name: str):
 			headers.extend(header[db_name])
 	return headers
 
-def extract_specific_gastos_notion_data(_database_id):
+def load_categorias():
 	aux_categorias = []
 	with open('categorias.json', 'r') as file:
 		data = json.load(file)
@@ -67,53 +67,72 @@ def extract_specific_gastos_notion_data(_database_id):
 			categoria_long_id = categoria['properties']['id_long']['formula']['string']
 			categoria_name = categoria['properties']['Name']['title'][0]['plain_text']
 			aux_categorias.append([categoria_long_id, categoria_name])
-	
-	headers = list()
-	values = list()
-	data = notion.get_notion_data(_database_id)
-	notion.write_dict_to_file_as_json(data, 'gastos')
+	return aux_categorias
 
+def fetch_notion_data_and_write_to_file(_database_id, filename):
+    data = notion.get_notion_data(_database_id)
+    notion.write_dict_to_file_as_json(data, filename)
+    return data
+
+def extract_values(data, properties, aux_categorias=None):
+	values = []
 	for item in data['results']:
-		medio_de_pago = str(notion.safe_get(item, 'properties.Medio de pago.select.name'))
-		valor = str(notion.safe_get(item, 'properties.Valor.number'))
-		empresa = str(notion.safe_get(item, 'properties.Empresa.select.name'))
-		fecha = str(notion.safe_get(item, 'properties.Fecha.date.start'))
-		recurrente = str(notion.safe_get(item, 'properties.Recurrente?.checkbox'))
-		id = str(notion.safe_get(item, 'properties.ID.unique_id.number'))
-		name = str(notion.safe_get(item, 'properties.Name.title.0.text.content'))
-		categoria_long_id = str(notion.safe_get(item, 'properties.Categor\u00eda.relation.0.id'))
-		for item in aux_categorias:
-			if item[0] == categoria_long_id:
-				categoria = item[1]
-				break
-			categoria = None
+		extracted = []
+		for prop in properties:
+			value = str(notion.safe_get(item, prop))
+			extracted.append(value)
+
+		# Replaces the long_id value with the category name
+		if aux_categorias is not None and "properties.Categoria.relation.0.id" in properties:
+			categoria_long_id = notion.safe_get(item, 'properties.Categoria.relation.0.id')
+			for cat_data in aux_categorias:
+				if categoria_long_id.replace('-', '') == cat_data[0]:
+					categoria = cat_data[1]
+					break
+			extracted[extracted.index(categoria_long_id)] = categoria
 		
-		values.append([id, name, valor, fecha, recurrente, medio_de_pago, empresa, time.asctime(time.localtime())])
-		
-	values.sort(key=lambda x : int(x[0]))
-	headers = add_headers_to_array('gastos')
-	values.insert(0, headers)
+		extracted.append(time.asctime(time.localtime()))
+		values.append(extracted)
 	return values
+
+def add_headers_to_values(headers, values):
+    values.sort(key=lambda x: int(x[0]))
+    values.insert(0, headers)
+    return values
+
+def extract_specific_gastos_notion_data(_database_id):
+	aux_categorias = load_categorias()	
+	data = fetch_notion_data_and_write_to_file(_database_id, 'gastos')
+
+	properties = [
+		'properties.ID.unique_id.number',
+		'properties.Name.title.0.text.content',
+		'properties.Valor.number',
+		'properties.Fecha.date.start',
+		'properties.Recurrente?.checkbox',
+		'properties.Medio de pago.select.name',
+		'properties.Empresa.select.name',
+		'properties.Categoria.relation.0.id'
+	]
+
+	values = extract_values(data, properties, aux_categorias)
+	headers = add_headers_to_array('gastos')
+	return add_headers_to_values(headers, values)
 
 def extract_specific_categorias_notion_data(_database_id):
-	data = notion.get_notion_data(_database_id)
-	notion.write_dict_to_file_as_json(data, 'categorias')
-	headers = list()
-	values = list()
+	data = fetch_notion_data_and_write_to_file(_database_id, 'categorias')
 	
-	for item in data['results']:
-		id = str(notion.safe_get(item, 'properties.ID.unique_id.number'))
-		name = str(notion.safe_get(item, 'properties.Name.title.0.plain_text'))
-		mes_actual = str(notion.safe_get(item, 'properties.$ Mes actual.formula.number'))
-		mes_anterior = str(notion.safe_get(item, 'properties.$ Mes anterior.formula.number'))
-		presupuesto = str(notion.safe_get(item, 'properties.Presupuesto.number'))
+	properties = [
+		'properties.ID.unique_id.number',
+		'properties.Name.title.0.plain_text',
+		'properties.$ Mes actual.formula.number',
+		'properties.$ Mes anterior.formula.number',
+		'properties.Presupuesto.number'
+	]
 		
-		values.append([id, name, mes_actual, mes_anterior, presupuesto, time.asctime(time.localtime())])
-		
-	values.sort(key=lambda x : int(x[0]))
+	values = extract_values(data, properties)
 	headers = add_headers_to_array('categorias')
-	values.insert(0, headers)
-	return values
+	return add_headers_to_values(headers, values)
 
 def main():
 	creds = None

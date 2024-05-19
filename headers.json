@@ -1,1 +1,27 @@
-{"headers": [{"categorias": ["ID", "NAME", "MES ACTUAL", "MES ANTERIOR", "PRESUPUESTO", "LAST_UPDATED_TIME"]}, {"gastos": ["ID", "NAME", "VALOR", "FECHA", "RECURRENTE", "MEDIO DE PAGO", "EMPRESA", "LAST_UPDATED_TIME"]}]}
+{
+    "headers": [
+        {
+            "categorias": [
+                "ID",
+                "NAME",
+                "MES ACTUAL",
+                "MES ANTERIOR",
+                "PRESUPUESTO",
+                "LAST_UPDATED_TIME"
+            ]
+        },
+        {
+            "gastos": [
+                "ID",
+                "NAME",
+                "VALOR",
+                "FECHA",
+                "RECURRENTE",
+                "MEDIO DE PAGO",
+                "EMPRESA",
+                "CATEGORIA",
+                "LAST_UPDATED_TIME"
+            ]
+        }
+    ]
+}
