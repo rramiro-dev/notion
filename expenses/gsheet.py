@@ -64,9 +64,10 @@ def load_categorias():
 	with open('categorias.json', 'r') as file:
 		data = json.load(file)
 		for categoria in data['results']:
-			categoria_long_id = categoria['properties']['id_long']['formula']['string']
+			categoria_long_id = categoria['id']
 			categoria_name = categoria['properties']['Name']['title'][0]['plain_text']
 			aux_categorias.append([categoria_long_id, categoria_name])
+	print(f'AuxCategorias: {aux_categorias}')
 	return aux_categorias
 
 def fetch_notion_data_and_write_to_file(_database_id, filename):
@@ -81,12 +82,13 @@ def extract_values(data, properties, aux_categorias=None):
 		for prop in properties:
 			value = str(notion.safe_get(item, prop))
 			extracted.append(value)
+		print(f'Extracted: {extracted}')
 
 		# Replaces the long_id value with the category name
 		if aux_categorias is not None and "properties.Categoria.relation.0.id" in properties:
 			categoria_long_id = notion.safe_get(item, 'properties.Categoria.relation.0.id')
 			for cat_data in aux_categorias:
-				if categoria_long_id.replace('-', '') == cat_data[0]:
+				if categoria_long_id == cat_data[0]:
 					categoria = cat_data[1]
 					break
 			extracted[extracted.index(categoria_long_id)] = categoria
@@ -115,7 +117,7 @@ def extract_specific_gastos_notion_data(_database_id):
 		'properties.Categoria.relation.0.id'
 	]
 
-	values = extract_values(data, properties, aux_categorias)
+	values = extract_values(data, properties, aux_categorias=aux_categorias)
 	headers = add_headers_to_array('gastos')
 	return add_headers_to_values(headers, values)
 
