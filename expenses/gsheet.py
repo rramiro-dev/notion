@@ -2,16 +2,15 @@
 Google Sheets API Documentation: https://developers.google.com/sheets/api/quickstart/python
 """
 import os.path
+import json
+import time
+from dotenv import find_dotenv
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
-import json
-import time
-from dotenv import find_dotenv
 
 import environment_variables as env
 import notion as notion
@@ -67,7 +66,6 @@ def load_categorias():
 			categoria_long_id = categoria['id']
 			categoria_name = categoria['properties']['Name']['title'][0]['plain_text']
 			aux_categorias.append([categoria_long_id, categoria_name])
-	print(f'AuxCategorias: {aux_categorias}')
 	return aux_categorias
 
 def fetch_notion_data_and_write_to_file(_database_id, filename):
@@ -82,7 +80,6 @@ def extract_values(data, properties, aux_categorias=None):
 		for prop in properties:
 			value = str(notion.safe_get(item, prop))
 			extracted.append(value)
-		print(f'Extracted: {extracted}')
 
 		# Replaces the long_id value with the category name
 		if aux_categorias is not None and "properties.Categoria.relation.0.id" in properties:
