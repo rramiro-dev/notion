@@ -126,7 +126,7 @@ def extract_specific_categorias_notion_data(_database_id):
 		'properties.Name.title.0.plain_text',
 		'properties.$ Mes actual.formula.number',
 		'properties.$ Mes anterior.formula.number',
-		'properties.Presupuesto.number'
+		'properties.Presupuesto.formula.number'
 	]
 		
 	values = extract_values(data, properties)
