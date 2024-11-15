@@ -11,7 +11,7 @@ def write_dict_to_file_as_json(content, file_name, extension:str='.json'):
     if not file_name.endswith(extension):
         file_name += extension
 
-    with open(file_name, 'w') as f:
+    with open(f"{'expenses/json/' + file_name}", 'w') as f:
         f.write(content_as_json_str)
 
 def safe_get(data, dot_chained_keys, default=None):

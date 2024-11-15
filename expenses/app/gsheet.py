@@ -31,7 +31,7 @@ def add_headers_to_array(db_name: str):
 	'''
 	# If the file exists, it just saves the data as a json object in the 'data' variable. If it doesn't exists, it creates the new json file,
 	# and appends the specified data and structure into it
-	headers_file_name = 'headers.json'
+	headers_file_name = 'expenses/json/headers.json'
 	if os.path.exists(headers_file_name):
 		headers_json_path = find_dotenv(filename=headers_file_name)
 		with open(headers_json_path, 'r') as file:
@@ -60,7 +60,7 @@ def add_headers_to_array(db_name: str):
 
 def load_categorias():
 	aux_categorias = []
-	with open('categorias.json', 'r') as file:
+	with open('expenses/json/categorias.json', 'r') as file:
 		data = json.load(file)
 		for categoria in data['results']:
 			categoria_long_id = categoria['id']
@@ -136,10 +136,10 @@ def extract_specific_categorias_notion_data(_database_id):
 def main():
 	creds = None
     # Check if token file exists
-	if os.path.exists("token.json"):
+	if os.path.exists("expenses/json/token.json"):
 		try:
             # Attempt to load credentials from the file
-			creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+			creds = Credentials.from_authorized_user_file("expenses/json/token.json", SCOPES)
             # If refresh is needed, try to refresh token
 			if creds and creds.expired and creds.refresh_token:
 				creds.refresh(Request())
@@ -150,17 +150,17 @@ def main():
     # If no valid credentials found, start authorization flow
 	if not creds or not creds.valid:
 		flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials.json", SCOPES
+            "expenses/json/credentials.json", SCOPES
         )
         
-		with open("credentials.json", "r") as f:
+		with open("expenses/json/credentials.json", "r") as f:
 			google_data = json.load(f)
         
 		redirect_uri = google_data["web"]["redirect_uris"][0]
 		port = redirect_uri.split(":")[-1].rstrip("/")
 		creds = flow.run_local_server(port=int(port))
 		# Save the credentials for the next run
-		with open("token.json", "w") as token:
+		with open("expenses/json/token.json", "w") as token:
 			token.write(creds.to_json())
 
 	try:
