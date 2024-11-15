@@ -9,11 +9,5 @@ __pycache__/
 *.pyc
 
 # Google creds
-credentials.json
-token.json
-
 # Private databases information
-db_info.json
-db_rows.json
-gastos.json
-categorias.json
+expenses/json/
